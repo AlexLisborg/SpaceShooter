@@ -11,25 +11,30 @@ public class Bullet {
     private float x;
     private float y;
     private float dx;
+    private float dy;
     private CollisionRect collider;
 
     private static Texture texture;
 
+    private MouseHandler mouse;
+
     public boolean remove = false;
 
-    public Bullet(float x, float y) {
+    public Bullet(float x, float y, float angle) {
         Random rand = new Random();
         this.x = x;
         this.y = y;
-        this.speed = 300;
+        this.speed = 30;
         this.texture = new Texture("space_shooter_pack/Graphics/spritesheets/laser-bolts/tile000.png");
-        this.dx = rand.nextFloat() * (float)0.5 - (float)0.5;
+        this.dx = (float)Math.cos(angle)  * speed;
+        this.dy = (float)Math.sin(angle)  * speed;
         this.collider = new CollisionRect(x,y,10,10);
+        this.mouse = new MouseHandler();
     }
 
     public void update(float deltaTime) {
-        this.y = this.y + this.speed * deltaTime;
-        this.x = this.x + this.dx;
+        this.y = this.y + this.dy * deltaTime * speed;
+        this.x = this.x + this.dx * deltaTime * speed;
         if(this.y > Gdx.graphics.getHeight()) {
             this.remove = true;
         }

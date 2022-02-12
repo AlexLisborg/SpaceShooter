@@ -4,6 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.mygdx.game.Asteroid;
 import com.mygdx.game.Bullet;
@@ -72,18 +73,13 @@ public class GameScreen implements Screen {
         ship.move(deltaTime);
 
         // Bullets
-        if (Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) {
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && countTime >= this.ship.getCanon().getFireSpeed()) {
             countTime = 0;
         }
-
         if (countTime == 0) {
             shoot();
         }
-
         countTime++;
-        if (countTime >= 10) {
-            countTime = 0;
-        }
         ArrayList<Bullet> bulletsToRemove = new ArrayList<Bullet>();
         for(Bullet bullet : bulletList) {
             bullet.update(delta);
@@ -165,8 +161,12 @@ public class GameScreen implements Screen {
 
 
     private void shoot() {
-        if(Gdx.input.isKeyPressed(Input.Keys.SPACE)) {
-            bulletList.add(new Bullet(ship.getX() + 6,ship.getY() + 4));
+        if(Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
+            float angle = ship.getMouse().getAngleBetweenCoordinatesAndMouse(ship.getX(),ship.getY());
+            bulletList.add(ship.getCanon().shoot(
+                    ship.getX() - ship.getTexture().getRegionWidth() / 2,
+                    ship.getY() - ship.getTexture().getRegionHeight() / 2,
+                    MathUtils.degreesToRadians * angle));
         }
     }
 
