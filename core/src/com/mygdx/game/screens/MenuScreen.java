@@ -1,13 +1,13 @@
 package com.mygdx.game.screens;
 
 import com.badlogic.gdx.Screen;
-import com.mygdx.game.DaGame;
+import com.mygdx.game.SpaceShooter;
 
 public class MenuScreen implements Screen {
 
-    DaGame game;
+    SpaceShooter game;
 
-    public MenuScreen(DaGame game){
+    public MenuScreen(SpaceShooter game){
         this.game = game;
     }
     @Override

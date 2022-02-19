@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.mygdx.game.screens.GameScreen;
 
 
-public class DaGame extends Game{
+public class SpaceShooter extends Game{
 
 	public SpriteBatch batch;
 

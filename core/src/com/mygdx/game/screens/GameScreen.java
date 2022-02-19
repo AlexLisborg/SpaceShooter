@@ -15,8 +15,8 @@ import java.util.Random;
 public class GameScreen implements Screen {
 
     private BitmapFont font = new BitmapFont();
-    DaGame game;
-    public GameScreen(DaGame game){
+    SpaceShooter game;
+    public GameScreen(SpaceShooter game){
         this.game = game;
     }
 
