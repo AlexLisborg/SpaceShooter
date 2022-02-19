@@ -20,11 +20,11 @@ public class Bullet {
 
     public boolean remove = false;
 
-    public Bullet(float x, float y, float angle) {
+    public Bullet(float x, float y, float angle, float speed) {
         Random rand = new Random();
         this.x = x;
         this.y = y;
-        this.speed = 30;
+        this.speed = speed;
         this.texture = new Texture("space_shooter_pack/Graphics/spritesheets/laser-bolts/tile000.png");
         this.dx = (float)Math.cos(angle)  * speed;
         this.dy = (float)Math.sin(angle)  * speed;

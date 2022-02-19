@@ -5,8 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.math.Vector2;
+import com.mygdx.game.canons.*;
 
 public class PlayerShip implements IPositionable {
     private int shipTexture;
@@ -15,13 +14,16 @@ public class PlayerShip implements IPositionable {
     private float speed;
     private float width;
     private float height;
-    CollisionRect rect;
+
 
     private TextureRegion texture;
+    private int health;
 
     private MouseHandler mouse;
 
     private Canon canon;
+
+    private CollisionRect collider;
 
     public PlayerShip(int texturenr) {
         this.x = Gdx.graphics.getWidth() / 2;
@@ -32,7 +34,9 @@ public class PlayerShip implements IPositionable {
         this.shipTexture = texturenr;
         this.texture = new TextureRegion(shipTextureToTexture(texturenr));
         this.mouse = new MouseHandler();
-        this.canon = new DEFAULT();
+        this.canon = new DOUBLE(30);
+        this.health = 20;
+        this.collider = new CollisionRect(x - width / 2 , y - height / 2 , width,height);
     }
 
     private Texture shipTextureToTexture(int shipTexture) {
@@ -43,6 +47,7 @@ public class PlayerShip implements IPositionable {
                 return new Texture("space_shooter_pack/Graphics/spritesheets/ship/tile000.png");
         }
     }
+
 
     public void render(SpriteBatch batch) {
         batch.draw(texture, x- width / 2, y - width / 2, width/2, width/2,width,height,1,1, mouse.getAngleBetweenCoordinatesAndMouse(x,y) + 270);
@@ -80,8 +85,24 @@ public class PlayerShip implements IPositionable {
                 x += speed * deltaTime;
             }
         }
+        if(x > Gdx.graphics.getWidth() - width / 2) {
+            x = Gdx.graphics.getWidth() - width / 2;
+        }
+        if(x < 0 + width / 2) {
+            x = 0 + width / 2;
+        }
+        if(y > Gdx.graphics.getHeight() - height / 2) {
+            y = Gdx.graphics.getHeight() - height / 2;
+        }
+        if(y < 0 + height / 2) {
+            y = 0 + height / 2;
+        }
+        this.collider.move(this.x - width / 2,this.y - height / 2);
     }
 
+    public void damage() {
+        this.health -= 1;
+    }
 
     public float getX() {
         return x;
@@ -109,5 +130,17 @@ public class PlayerShip implements IPositionable {
 
     public TextureRegion getTexture() {
         return texture;
+    }
+
+    public CollisionRect getCollider() {
+        return collider;
+    }
+
+    public int getHealth() {
+        return health;
+    }
+
+    public void setHealth(int health) {
+        this.health = health;
     }
 }

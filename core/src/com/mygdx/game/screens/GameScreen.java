@@ -4,17 +4,17 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.mygdx.game.Asteroid;
-import com.mygdx.game.Bullet;
-import com.mygdx.game.DaGame;
-import com.mygdx.game.PlayerShip;
+import com.mygdx.game.*;
 
 import java.util.ArrayList;
 import java.util.Random;
 
 public class GameScreen implements Screen {
+
+    private BitmapFont font = new BitmapFont();
     DaGame game;
     public GameScreen(DaGame game){
         this.game = game;
@@ -31,12 +31,17 @@ public class GameScreen implements Screen {
     // Floats:
     private float deltaTime = 0;
 
+    private float enemySpawnFrequency = (float)0.995;
+
+    private int points = 0;
+
     // Random
     Random rand = new Random();
 
     // Settings:
     private int gameWidth;
     private int gameHeight;
+
 
     private float countTime;
 
@@ -48,7 +53,9 @@ public class GameScreen implements Screen {
 
     // Bullets
     ArrayList<Bullet> bulletList = new ArrayList<Bullet>();
-    ArrayList<Asteroid> asteroidList = new ArrayList<Asteroid>();
+    ArrayList<Asteroid> asteroidList = new ArrayList<>();
+    ArrayList<EnemyShip> enemyList = new ArrayList<>();
+    ArrayList<Bullet> enemyBulletList = new ArrayList<>();
 
     // Ship
     PlayerShip ship = new PlayerShip(1);
@@ -73,7 +80,7 @@ public class GameScreen implements Screen {
         ship.move(deltaTime);
 
         // Bullets
-        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && countTime >= this.ship.getCanon().getFireSpeed()) {
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && countTime >= this.ship.getCanon().getFireSpeed() * deltaTime * 20) {
             countTime = 0;
         }
         if (countTime == 0) {
@@ -89,7 +96,7 @@ public class GameScreen implements Screen {
         }
 
         // Asteroids
-        if (rand.nextFloat() > 0.99) {
+        if (rand.nextFloat() > 0.985) {
             asteroidList.add(new Asteroid());
         }
         ArrayList<Asteroid> asteroidsToRemove = new ArrayList<Asteroid>();
@@ -99,6 +106,34 @@ public class GameScreen implements Screen {
                 asteroidsToRemove.add(asteroid);
             }
         }
+
+        // Enemies
+
+        ArrayList<Bullet> enemyBulletsToRemove = new ArrayList<>();
+        if (rand.nextFloat() > enemySpawnFrequency) {
+            enemyList.add(new EnemyShip());
+        }
+        ArrayList<EnemyShip> enemiesToRemove = new ArrayList<>();
+        for (EnemyShip enemy : enemyList) {
+            enemy.update(delta);
+            if(enemy.getCountTime() >= 25 * deltaTime * 40) {
+                enemyBulletList.addAll(enemy.shoot());
+                enemy.setCountTime(0);
+            }
+
+            enemy.setCountTime(enemy.getCountTime()+1);
+            if(enemy.remove) {
+                enemiesToRemove.add(enemy);
+            }
+        }
+        for(Bullet bullet : enemyBulletList) {
+            bullet.update(delta);
+            if (bullet.remove) {
+                bulletsToRemove.add(bullet);
+            }
+        }
+
+
 
         // Background scrolling
         scrollingBackgroundMethod(2);
@@ -112,6 +147,9 @@ public class GameScreen implements Screen {
         game.batch.draw(starsSmall, 0, scrollingStarsSmallParallel);
         game.batch.draw(background,0, scrollingBackground);
         game.batch.draw(background,0, scrollingBackgroundParallel);
+        font.draw(game.batch, String.valueOf(points),30,30);
+        font.draw(game.batch, "HP",Gdx.graphics.getWidth() - 30,50);
+        font.draw(game.batch, String.valueOf(ship.getHealth()),Gdx.graphics.getWidth() - 30,30);
         for (Bullet bullet : bulletList) {
             bullet.render(game.batch);
             for (Asteroid asteroid: asteroidList) {
@@ -119,13 +157,52 @@ public class GameScreen implements Screen {
                     bulletsToRemove.add(bullet);
                     asteroid.damage();
                 }
+
             }
+            for (EnemyShip enemy : enemyList) {
+                if (bullet.getCollider().collidesWith(enemy.getCollider())) {
+                    bulletsToRemove.add(bullet);
+                    enemy.damage();
+                }
+            }
+        }
+        for (Bullet bullet : enemyBulletList) {
+            bullet.render(game.batch);
+            if(bullet.getCollider().collidesWith(ship.getCollider())){
+                enemyBulletsToRemove.add(bullet);
+                ship.damage();
+            }
+        }
+        for (Asteroid asteroid: asteroidList) {
+            if(ship.getCollider().collidesWith(asteroid.getCollider())){
+                ship.damage();
+            }
+        }
+
+        if (enemiesToRemove.size() > 0) {
+            ship.getCanon().setFireSpeed(ship.getCanon().getFireSpeed() - (float)0.1);
+            ship.setHealth(ship.getHealth() + 1);
+            enemySpawnFrequency -= 0.0005;
+            points +=10;
+        }
+        if (asteroidsToRemove.size() > 0) {
+            ship.getCanon().setFireSpeed(ship.getCanon().getFireSpeed() - (float)0.05);
+            points +=5;
+            ship.setHealth(ship.getHealth() + 1);
         }
         bulletList.removeAll(bulletsToRemove);
         asteroidList.removeAll(asteroidsToRemove);
+        enemyList.removeAll(enemiesToRemove);
+        enemyBulletList.removeAll(enemyBulletsToRemove);
+        if (ship.getHealth() <= 0) {
+            System.exit(0);
+        }
 
         for (Asteroid asteroid : asteroidList) {
             asteroid.render(game.batch);
+        }
+        for (EnemyShip enemy : enemyList) {
+            enemy.render(game.batch);
         }
         ship.render(game.batch);
         game.batch.end();
@@ -163,7 +240,7 @@ public class GameScreen implements Screen {
     private void shoot() {
         if(Gdx.input.isButtonPressed(Input.Buttons.LEFT)) {
             float angle = ship.getMouse().getAngleBetweenCoordinatesAndMouse(ship.getX(),ship.getY());
-            bulletList.add(ship.getCanon().shoot(
+            bulletList.addAll(ship.getCanon().shoot(
                     ship.getX() - ship.getTexture().getRegionWidth() / 2,
                     ship.getY() - ship.getTexture().getRegionHeight() / 2,
                     MathUtils.degreesToRadians * angle));
