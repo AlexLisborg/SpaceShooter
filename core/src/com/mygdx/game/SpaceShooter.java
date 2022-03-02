@@ -7,13 +7,9 @@ import com.mygdx.game.screens.GameScreen;
 
 public class SpaceShooter extends Game{
 
-	public SpriteBatch batch;
-
-	
 	@Override
 	public void create () {
-		batch = new SpriteBatch();
-		this.setScreen(new GameScreen(this));
+		this.setScreen(new GameScreen());
 	}
 
 	@Override

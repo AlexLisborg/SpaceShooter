@@ -5,6 +5,7 @@ import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.mygdx.game.*;
@@ -15,9 +16,12 @@ import java.util.Random;
 public class GameScreen implements Screen {
 
     private BitmapFont font = new BitmapFont();
-    SpaceShooter game;
-    public GameScreen(SpaceShooter game){
-        this.game = game;
+
+    SpriteBatch batch;
+
+    public GameScreen(){
+
+        this.batch = new SpriteBatch();
     }
 
     // Textures:
@@ -80,13 +84,13 @@ public class GameScreen implements Screen {
         ship.move(deltaTime);
 
         // Bullets
-        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && countTime >= this.ship.getCanon().getFireSpeed() * deltaTime * 20) {
+        if (Gdx.input.isButtonPressed(Input.Buttons.LEFT) && countTime >= ship.getCanon().getFireSpeed() * deltaTime * 20) {
             countTime = 0;
-        }
-        if (countTime == 0) {
             shoot();
         }
         countTime++;
+
+        // Bullets
         ArrayList<Bullet> bulletsToRemove = new ArrayList<Bullet>();
         for(Bullet bullet : bulletList) {
             bullet.update(delta);
@@ -120,7 +124,6 @@ public class GameScreen implements Screen {
                 enemyBulletList.addAll(enemy.shoot());
                 enemy.setCountTime(0);
             }
-
             enemy.setCountTime(enemy.getCountTime()+1);
             if(enemy.remove) {
                 enemiesToRemove.add(enemy);
@@ -141,23 +144,22 @@ public class GameScreen implements Screen {
 
         // Batch
 
-        game.batch.begin();
-        game.batch.draw(backgroundColor,0,0);
-        game.batch.draw(starsSmall, 0, scrollingStarsSmall);
-        game.batch.draw(starsSmall, 0, scrollingStarsSmallParallel);
-        game.batch.draw(background,0, scrollingBackground);
-        game.batch.draw(background,0, scrollingBackgroundParallel);
-        font.draw(game.batch, String.valueOf(points),30,30);
-        font.draw(game.batch, "HP",Gdx.graphics.getWidth() - 30,50);
-        font.draw(game.batch, String.valueOf(ship.getHealth()),Gdx.graphics.getWidth() - 30,30);
+        batch.begin();
+        batch.draw(backgroundColor,0,0);
+        batch.draw(starsSmall, 0, scrollingStarsSmall);
+        batch.draw(starsSmall, 0, scrollingStarsSmallParallel);
+        batch.draw(background,0, scrollingBackground);
+        batch.draw(background,0, scrollingBackgroundParallel);
+        font.draw(batch, String.valueOf(points),30,30);
+        font.draw(batch, "HP",Gdx.graphics.getWidth() - 30,50);
+        font.draw(batch, String.valueOf(ship.getHealth()),Gdx.graphics.getWidth() - 30,30);
         for (Bullet bullet : bulletList) {
-            bullet.render(game.batch);
+            bullet.render(batch);
             for (Asteroid asteroid: asteroidList) {
                 if(bullet.getCollider().collidesWith(asteroid.getCollider())){
                     bulletsToRemove.add(bullet);
                     asteroid.damage();
                 }
-
             }
             for (EnemyShip enemy : enemyList) {
                 if (bullet.getCollider().collidesWith(enemy.getCollider())) {
@@ -167,7 +169,7 @@ public class GameScreen implements Screen {
             }
         }
         for (Bullet bullet : enemyBulletList) {
-            bullet.render(game.batch);
+            bullet.render(batch);
             if(bullet.getCollider().collidesWith(ship.getCollider())){
                 enemyBulletsToRemove.add(bullet);
                 ship.damage();
@@ -199,13 +201,13 @@ public class GameScreen implements Screen {
         }
 
         for (Asteroid asteroid : asteroidList) {
-            asteroid.render(game.batch);
+            asteroid.render(batch);
         }
         for (EnemyShip enemy : enemyList) {
-            enemy.render(game.batch);
+            enemy.render(batch);
         }
-        ship.render(game.batch);
-        game.batch.end();
+        ship.render(batch);
+        batch.end();
     }
 
     @Override
@@ -230,7 +232,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
-        game.batch.dispose();
+        batch.dispose();
         img.dispose();
     }
 
@@ -269,5 +271,4 @@ public class GameScreen implements Screen {
         this.scrollingStarsSmallParallel = this.scrollingStarsSmallParallel - speed;
 
     }
-
 }
